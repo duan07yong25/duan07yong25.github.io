@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[柠檬的技术博客]]></title>
+  <link href="http://duan07yong25.github.io/atom.xml" rel="self"/>
+  <link href="http://duan07yong25.github.io/"/>
+  <updated>2017-12-20T17:45:22+08:00</updated>
+  <id>http://duan07yong25.github.io/</id>
+  <author>
+    <name><![CDATA[柠檬]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[段勇的博客]]></title>
+    <link href="http://duan07yong25.github.io/blog/2017/12/20/duan-yong-de-bo-ke/"/>
+    <updated>2017-12-20T17:17:27+08:00</updated>
+    <id>http://duan07yong25.github.io/blog/2017/12/20/duan-yong-de-bo-ke</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+</feed>

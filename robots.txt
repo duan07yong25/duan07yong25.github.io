@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://duan07yong25.github.io/sitemap.xml 
