@@ -9,7 +9,10 @@
   <meta name="author" content="柠檬">
 
   
-  <meta name="description" content="一.Bootstrap类 启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事 - a.初始化classLoader - b.加载Catania类 - c.调用Catania的start方法
+  <meta name="description" content="一.Bootstrap类 启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事
+- a.初始化classLoader
+- b.加载Catania类
+- c.调用Catania的start方法
 Bootstrap中有个static块， &hellip;">
   
 
@@ -88,9 +91,9 @@ Bootstrap中有个static块， &hellip;">
   <div class="entry-content"><h1>一.Bootstrap类</h1>
 
 <p>启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事
-    - a.初始化classLoader
-    - b.加载Catania类
-    - c.调用Catania的start方法
+- a.初始化classLoader
+- b.加载Catania类
+- c.调用Catania的start方法
 Bootstrap中有个static块，用于设置catalina.home和catalina.base
 在关闭tomcat时调用Catania的stop方法</p>
 
