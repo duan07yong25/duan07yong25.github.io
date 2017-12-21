@@ -9,7 +9,8 @@
   <meta name="author" content="柠檬">
 
   
-  <meta name="description" content="一.下载tomcat源码 1.tomcat源码 tomcat-8.5.24源码地址 2.tomcat binary tomcat-8.5.24 bin地址，在运行时需要使用一些jar包（比如：servlet.jar），下载bin文件直接使用解压出来的lib比较方便。 二.必要的配置 1. &hellip;">
+  <meta name="description" content="一.Bootstrap类 启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事 a.初始化classLoader b.加载Catania类 c.调用Catania的start方法
+Bootstrap中有个static块，用于设置catalina &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,7 +69,239 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2017/12/21/tomcat-yuan-ma-yun-xing/">Tomcat-源码运行</a></h1>
+      <h1 class="entry-title"><a href="/blog/2017/12/21/tomcat-er-qi-dong-yuan-ma-fen-xi/">Tomcat-二-启动源码分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2017-12-21T14:48:08+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2017</span></span> <span class='time'>2:48 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>一.Bootstrap类</h1>
+
+<p>启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事
+    a.初始化classLoader
+    b.加载Catania类
+    c.调用Catania的start方法
+Bootstrap中有个static块，用于设置catalina.home和catalina.base
+在关闭tomcat时调用Catania的stop方法</p>
+
+<h1>1.先看看main方法</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[])</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">daemon</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Don&#39;t set daemon until init() has completed</span>
+</span><span class='line'>            <span class="n">Bootstrap</span> <span class="n">bootstrap</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Bootstrap</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">//1.初始化classLoader 2.加载Catania类</span>
+</span><span class='line'>                <span class="n">bootstrap</span><span class="o">.</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">t</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">daemon</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// When running as a service the call to stop will be on a new</span>
+</span><span class='line'>            <span class="c1">// thread so make sure the correct class loader is used to prevent</span>
+</span><span class='line'>            <span class="c1">// a range of class not found exceptions.</span>
+</span><span class='line'>            <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span><span class="n">daemon</span><span class="o">.</span><span class="na">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">String</span> <span class="n">command</span> <span class="o">=</span> <span class="s">&quot;start&quot;</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">command</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;startd&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;start&quot;</span><span class="o">;</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;stopd&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">args</span><span class="o">[</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;stop&quot;</span><span class="o">;</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;start&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">//3.调用Catania的start方法</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">setAwait</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;stop&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">stopServer</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="o">(</span><span class="n">command</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;configtest&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">daemon</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">==</span><span class="n">daemon</span><span class="o">.</span><span class="na">getServer</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Bootstrap: command \&quot;&quot;</span> <span class="o">+</span> <span class="n">command</span> <span class="o">+</span> <span class="s">&quot;\&quot; does not exist.&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Unwrap the Exception for clearer error reporting</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">t</span> <span class="k">instanceof</span> <span class="n">InvocationTargetException</span> <span class="o">&amp;&amp;</span>
+</span><span class='line'>                    <span class="n">t</span><span class="o">.</span><span class="na">getCause</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="na">getCause</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">handleThrowable</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">t</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>2.看看bootstrap.init()方法</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">//初始化类加载器</span>
+</span><span class='line'>        <span class="n">initClassLoaders</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">setContextClassLoader</span><span class="o">(</span><span class="n">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">SecurityClassLoad</span><span class="o">.</span><span class="na">securityClassLoad</span><span class="o">(</span><span class="n">catalinaLoader</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 加载Catania类</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Loading startup class&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">startupClass</span> <span class="o">=</span> <span class="n">catalinaLoader</span><span class="o">.</span><span class="na">loadClass</span><span class="o">(</span><span class="s">&quot;org.apache.catalina.startup.Catalina&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">Object</span> <span class="n">startupInstance</span> <span class="o">=</span> <span class="n">startupClass</span><span class="o">.</span><span class="na">getConstructor</span><span class="o">().</span><span class="na">newInstance</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 设置shareLoader为Catania的parentClassLoader</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Setting startup class properties&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">methodName</span> <span class="o">=</span> <span class="s">&quot;setParentClassLoader&quot;</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">paramTypes</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Class</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>        <span class="n">paramTypes</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;java.lang.ClassLoader&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">Object</span> <span class="n">paramValues</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+</span><span class='line'>        <span class="n">paramValues</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="n">sharedLoader</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">Method</span> <span class="n">method</span> <span class="o">=</span>
+</span><span class='line'>            <span class="n">startupInstance</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getMethod</span><span class="o">(</span><span class="n">methodName</span><span class="o">,</span> <span class="n">paramTypes</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">method</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">startupInstance</span><span class="o">,</span> <span class="n">paramValues</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">catalinaDaemon</span> <span class="o">=</span> <span class="n">startupInstance</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2017/12/21/tomcat-yuan-ma-yun-xing/">Tomcat(一)-源码运行</a></h1>
     
     
       <p class="meta">
@@ -380,7 +613,11 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2017/12/21/tomcat-yuan-ma-yun-xing/">Tomcat-源码运行</a>
+        <a href="/blog/2017/12/21/tomcat-er-qi-dong-yuan-ma-fen-xi/">Tomcat-二-启动源码分析</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/12/21/tomcat-yuan-ma-yun-xing/">Tomcat(一)-源码运行</a>
       </li>
     
       <li class="post">
