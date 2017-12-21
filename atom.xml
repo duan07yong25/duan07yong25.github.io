@@ -4,7 +4,7 @@
   <title><![CDATA[柠檬的技术博客]]></title>
   <link href="http://duan07yong25.github.io/atom.xml" rel="self"/>
   <link href="http://duan07yong25.github.io/"/>
-  <updated>2017-12-21T10:33:25+08:00</updated>
+  <updated>2017-12-21T10:47:53+08:00</updated>
   <id>http://duan07yong25.github.io/</id>
   <author>
     <name><![CDATA[柠檬]]></name>
@@ -12,6 +12,47 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[创建博客命令]]></title>
+    <link href="http://duan07yong25.github.io/blog/2017/12/21/chuang-jian-bo-ke-ming-ling/"/>
+    <updated>2017-12-21T10:35:11+08:00</updated>
+    <id>http://duan07yong25.github.io/blog/2017/12/21/chuang-jian-bo-ke-ming-ling</id>
+    <content type="html"><![CDATA[<p>1.创建文件</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake new_post
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2.生成静态站点</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake generate
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>3.预览</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake preview
+</span></code></pre></td></tr></table></div></figure>
+
+
+<pre><code>此时，可以使用浏览器打开 localhost:4000 查看效果
+</code></pre>
+
+<p>4.push到远端</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake deploy
+</span></code></pre></td></tr></table></div></figure>
+
+
+<pre><code>push 到 GitHub仓库的 master 分支上
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[段勇的博客]]></title>
