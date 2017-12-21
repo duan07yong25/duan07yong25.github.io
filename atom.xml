@@ -4,7 +4,7 @@
   <title><![CDATA[柠檬的技术博客]]></title>
   <link href="http://duan07yong25.github.io/atom.xml" rel="self"/>
   <link href="http://duan07yong25.github.io/"/>
-  <updated>2017-12-21T16:53:09+08:00</updated>
+  <updated>2017-12-21T16:56:50+08:00</updated>
   <id>http://duan07yong25.github.io/</id>
   <author>
     <name><![CDATA[柠檬]]></name>
@@ -21,9 +21,9 @@
     <content type="html"><![CDATA[<h1>一.Bootstrap类</h1>
 
 <p>启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事
-    >a.初始化classLoader
-    >b.加载Catania类
-    >c.调用Catania的start方法
+    - a.初始化classLoader
+    - b.加载Catania类
+    - c.调用Catania的start方法
 Bootstrap中有个static块，用于设置catalina.home和catalina.base
 在关闭tomcat时调用Catania的stop方法</p>
 
