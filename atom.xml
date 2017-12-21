@@ -4,7 +4,7 @@
   <title><![CDATA[柠檬的技术博客]]></title>
   <link href="http://duan07yong25.github.io/atom.xml" rel="self"/>
   <link href="http://duan07yong25.github.io/"/>
-  <updated>2017-12-21T16:57:49+08:00</updated>
+  <updated>2017-12-21T18:26:00+08:00</updated>
   <id>http://duan07yong25.github.io/</id>
   <author>
     <name><![CDATA[柠檬]]></name>
@@ -20,14 +20,20 @@
     <id>http://duan07yong25.github.io/blog/2017/12/21/tomcat-er-qi-dong-yuan-ma-fen-xi</id>
     <content type="html"><![CDATA[<h1>一.Bootstrap类</h1>
 
-<p>启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事
-- a.初始化classLoader
-- b.加载Catania类
-- c.调用Catania的start方法
-Bootstrap中有个static块，用于设置catalina.home和catalina.base
-在关闭tomcat时调用Catania的stop方法</p>
+<p>启动tomcat时实际是调用Boostrap的main方法，在启动tomcat时在main方法中做了三件事</p>
 
-<h1>1.先看看main方法</h1>
+<blockquote><ul>
+<li>初始化classLoader</li>
+<li>加载Catalina类</li>
+<li>调用Catalina的start方法</li>
+</ul>
+</blockquote>
+
+<p>Bootstrap中有个static块，用于设置catalina.home和catalina.base</p>
+
+<p>在关闭tomcat时调用Catalina的stop方法</p>
+
+<h2>1.先看看main方法</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -156,7 +162,7 @@ Bootstrap中有个static块，用于设置catalina.home和catalina.base
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h1>2.看看bootstrap.init()方法</h1>
+<h2>2.看看bootstrap.init()方法</h2>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -217,6 +223,271 @@ Bootstrap中有个static块，用于设置catalina.home和catalina.base
 </span><span class='line'>
 </span><span class='line'>        <span class="n">catalinaDaemon</span> <span class="o">=</span> <span class="n">startupInstance</span><span class="o">;</span>
 </span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>二.Catalina类</h1>
+
+<p>在Bootstrap的main方法中会调用Catalina的load、start方法。主要是初始化和启动server，具体做了以下几个事：</p>
+
+<blockquote><ul>
+<li>initDirs() : 初始化 java.io.tmpdir 目录</li>
+<li>initNaming() : 初始化Java命名服务</li>
+<li>createStartDigester() : 读取并解析server.xml</li>
+<li>initStreams() : 设置标准输出和错误输出</li>
+<li>server.init() : 调用server的init()方法</li>
+<li>getServer().start() : 开始server</li>
+<li>Runtime.getRuntime().addShutdownHook(shutdownHook) ： 注册shutdownHook</li>
+</ul>
+</blockquote>
+
+<h2>1.Catalina的start方法</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">getServer</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">load</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">getServer</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">fatal</span><span class="o">(</span><span class="s">&quot;Cannot start server. Server instance is not configured.&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 开始server</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">getServer</span><span class="o">().</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">LifecycleException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">fatal</span><span class="o">(</span><span class="n">sm</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">&quot;catalina.serverStartFail&quot;</span><span class="o">),</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">getServer</span><span class="o">().</span><span class="na">destroy</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">LifecycleException</span> <span class="n">e1</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;destroy() failed for failed Server &quot;</span><span class="o">,</span> <span class="n">e1</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span><span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isInfoEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Server startup in &quot;</span> <span class="o">+</span> <span class="o">((</span><span class="n">t2</span> <span class="o">-</span> <span class="n">t1</span><span class="o">)</span> <span class="o">/</span> <span class="mi">1000000</span><span class="o">)</span> <span class="o">+</span> <span class="s">&quot; ms&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 注册shutdownHook</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">useShutdownHook</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">shutdownHook</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">shutdownHook</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CatalinaShutdownHook</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">Runtime</span><span class="o">.</span><span class="na">getRuntime</span><span class="o">().</span><span class="na">addShutdownHook</span><span class="o">(</span><span class="n">shutdownHook</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">// If JULI is being used, disable JULI&#39;s shutdown hook since</span>
+</span><span class='line'>            <span class="c1">// shutdown hooks run in parallel and log messages may be lost</span>
+</span><span class='line'>            <span class="c1">// if JULI&#39;s hook completes before the CatalinaShutdownHook()</span>
+</span><span class='line'>            <span class="n">LogManager</span> <span class="n">logManager</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="na">getLogManager</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">logManager</span> <span class="k">instanceof</span> <span class="n">ClassLoaderLogManager</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="o">((</span><span class="n">ClassLoaderLogManager</span><span class="o">)</span> <span class="n">logManager</span><span class="o">).</span><span class="na">setUseShutdownHook</span><span class="o">(</span>
+</span><span class='line'>                        <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">await</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">//调用server的await方法</span>
+</span><span class='line'>            <span class="n">await</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">stop</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>2.Catalina的load方法</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Start a new server instance.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">load</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">//初始化 java.io.tmpdir 目录</span>
+</span><span class='line'>        <span class="n">initDirs</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 初始化Java命名服务</span>
+</span><span class='line'>        <span class="n">initNaming</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 读取并解析server.xml</span>
+</span><span class='line'>        <span class="n">Digester</span> <span class="n">digester</span> <span class="o">=</span> <span class="n">createStartDigester</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">InputSource</span> <span class="n">inputSource</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">InputStream</span> <span class="n">inputStream</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>            <span class="c1">//省略部分代码</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">inputSource</span><span class="o">.</span><span class="na">setByteStream</span><span class="o">(</span><span class="n">inputStream</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">digester</span><span class="o">.</span><span class="na">push</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>                <span class="n">digester</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">inputSource</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SAXParseException</span> <span class="n">spe</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Catalina.start using &quot;</span> <span class="o">+</span> <span class="n">getConfigFile</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span>
+</span><span class='line'>                        <span class="n">spe</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+</span><span class='line'>                <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Catalina.start using &quot;</span> <span class="o">+</span> <span class="n">getConfigFile</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>                <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">inputStream</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">inputStream</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">// Ignore</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">getServer</span><span class="o">().</span><span class="na">setCatalina</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">getServer</span><span class="o">().</span><span class="na">setCatalinaHome</span><span class="o">(</span><span class="n">Bootstrap</span><span class="o">.</span><span class="na">getCatalinaHomeFile</span><span class="o">());</span>
+</span><span class='line'>        <span class="n">getServer</span><span class="o">().</span><span class="na">setCatalinaBase</span><span class="o">(</span><span class="n">Bootstrap</span><span class="o">.</span><span class="na">getCatalinaBaseFile</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 设置标准输出和错误输出</span>
+</span><span class='line'>        <span class="n">initStreams</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// 调用server的init()方法</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">getServer</span><span class="o">().</span><span class="na">init</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">LifecycleException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">Boolean</span><span class="o">.</span><span class="na">getBoolean</span><span class="o">(</span><span class="s">&quot;org.apache.catalina.startup.EXIT_ON_INIT_FAILURE&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">throw</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Error</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Catalina.start&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">long</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span><span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isInfoEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Initialization processed in &quot;</span> <span class="o">+</span> <span class="o">((</span><span class="n">t2</span> <span class="o">-</span> <span class="n">t1</span><span class="o">)</span> <span class="o">/</span> <span class="mi">1000000</span><span class="o">)</span> <span class="o">+</span> <span class="s">&quot; ms&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>    <span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
